@@ -12,61 +12,104 @@ function drawPlane() {
 }
 
 let snake = []
-snake[0] = {
-    x: 5,
-    y: 5
-}
-snake[1] = {
-    x: 5,
-    y: 5
-}
-snake[2] = {
-    x: 5,
-    y: 5
-}
+randomSpawn(snake)
+
+let food = []
+randomSpawn(food, 4)
 
 const draw = function draw() {
     drawPlane()
 
-    ctx.fillStyle = "#f2a154"
+    // Отрисовываем все элементы из snake[]
+    renderOnPlane(snake, "#f2a154")
 
-    snake.forEach(elem => {
+    // Отрисовываем все элементы из food[]
+    renderOnPlane(food, "#54f299")
+
+    // Сохраняем координаты первого элемента из snake[]
+    let beforeDel = {
+        x: snake[0].x,
+        y: snake[0].y
+    }
+
+    // Удаляем последний элемент
+    snake.pop()
+
+    // Перемещаем первый элемент
+    beforeDel = switchDir(direction, beforeDel)
+
+    // Проверяем первый элемент на выход за границы
+    newHead = checkExit(beforeDel)
+
+    // Проверяем первый элемент на столкновение с едой (if true - прибаляем +1)
+    const checkEat = collision(newHead, food)
+    if (checkEat) {
+        snake.push({x: beforeDel.x, y: beforeDel.y})
+
+        // спавним на random координаты в массив food[]
+        randomSpawn(food)
+    }
+
+    // Вставлям "первый элемент" на 0 место (первое) в массив snake[]
+    snake.unshift(newHead)
+}
+setInterval(draw, 100)
+
+function randomSpawn(arr, num = 1) {
+    for (let i=0; i < num; i++) {
+        const cords = {
+            x: Math.floor(Math.random() * canvas.width/box + 1),
+            y: Math.floor(Math.random() * canvas.height/box  + 1)
+        }
+        arr.push(cords)
+    }
+}
+
+function collision(cords, arr) {
+    const element = arr.find((elem, index) => {
+        if (cords.x == elem.x && cords.y == elem.y) {
+            arr.splice(index, 1)
+            return elem
+        }
+        return false
+    })
+    return element
+}
+
+function renderOnPlane(arr, color) {
+    ctx.fillStyle = color
+
+    arr.forEach(elem => {
         const x = (elem.x-1)*box
         const y = (elem.y-1)*box
 
         ctx.fillRect(x, y, box, box)
     })
+}
 
-    let snakeX = snake[0].x
-    let snakeY = snake[0].y
-
-    snake.pop()
+function switchDir(direction, cords) {
+    let cord = {
+        x: cords.x,
+        y: cords.y
+    }
 
     switch (direction) {
         case "up":
-            snakeY--
+            cord.y--
             break;
         case "down":
-            snakeY++
+            cord.y++
             break;
         case "left":
-            snakeX--
+            cord.x--
             break;
         case "right":
-            snakeX++
+            cord.x++
             break;
     }
 
-    let newHead = {
-        x: snakeX,
-        y: snakeY
-    }
-
-    newHead = checkExit(newHead)
-
-    snake.unshift(newHead)
+    return cord
 }
-setInterval(draw, 100)
 
 function checkExit(cords) {
     const head = {
