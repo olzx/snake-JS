@@ -25,7 +25,7 @@ snake[2] = {
     y: 5
 }
 
-function draw() {
+const draw = function draw() {
     drawPlane()
 
     ctx.fillStyle = "#f2a154"
@@ -57,14 +57,45 @@ function draw() {
             break;
     }
 
-    const newHead = {
+    let newHead = {
         x: snakeX,
         y: snakeY
     }
 
+    newHead = checkExit(newHead)
+
     snake.unshift(newHead)
 }
 setInterval(draw, 100)
+
+function checkExit(cords) {
+    const head = {
+        x: cords.x,
+        y: cords.y
+    }
+
+    if (cords.x <= 0) {
+        head.x = canvas.width / box
+        return head
+    }
+
+    if ((cords.x * box) > canvas.width) {
+        head.x = 1
+        return head
+    } 
+
+    if (cords.y <= 0) {
+        head.y = canvas.height / box
+        return head
+    }
+
+    if ((cords.y * box) > canvas.height) {
+        head.y = 1
+        return head
+    } 
+
+    return head
+}
 
 let direction = 'down'
 document.addEventListener('keydown', event => {
