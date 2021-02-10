@@ -10,8 +10,13 @@ canvas.width  = 656
 
 const box = 16
 
+let timeUpdate = 100
+
+const foodImg = new Image(); 
+foodImg.src = "img/food.png";
+
 function drawPlane() {
-    ctx.fillStyle = "#108165"
+    ctx.fillStyle = "#000"
     ctx.fillRect(0, 0, canvas.height, canvas.width)
 }
 
@@ -21,14 +26,20 @@ snake[0] = randomCords()
 let food = []
 spawnFood(8)
 
-const draw = function draw() {
+let boost = []
+boost[0] = randomCords()
+
+let draw = function drawUpdate() {
     drawPlane()
 
     // Отрисовываем все элементы из snake[]
     renderOnPlane(snake, "#f2a154", "#ef7b0e")
 
     // Отрисовываем все элементы из food[]
-    renderOnPlane(food, "#54f299")
+    renderOnPlaneImage(food, foodImg)
+
+    // Отрисовываем все элементы из boost[]
+    renderOnPlane(boost, "#1687a7")
 
     // Сохраняем координаты первого элемента из snake[]
     let beforeDel = {
@@ -64,10 +75,23 @@ const draw = function draw() {
         lengthSpan.textContent = snake.length+1
     }
 
+    const checkBoost = collision(newHead, boost)
+    if (checkBoost) {
+        boost.splice(boost.indexOf(checkBoost), 1)
+        timeUpdate = 50
+
+        setTimeout(() => {
+            timeUpdate = 100
+            const cords = randomCords()
+            boost.push(cords)
+        }, 3000);
+    }
+
     // Вставлям "первый элемент" на 0 место (первое) в массив snake[]
     snake.unshift(newHead)
+    setTimeout(draw, timeUpdate)
 }
-setInterval(draw, 100)
+setTimeout(draw, 1);
 
 // таймер
 let minutes = 0
@@ -131,6 +155,15 @@ function renderOnPlane(arr, color, colorHead=false) {
             ctx.fillStyle = color
             ctx.fillRect(x, y, box, box)
         }
+    })
+}
+
+function renderOnPlaneImage(arr, image) {
+    arr.forEach(elem => {
+        const x = (elem.x-1)*box
+        const y = (elem.y-1)*box
+
+        ctx.drawImage(image, x, y, box, box);
     })
 }
 
