@@ -22,7 +22,7 @@ const draw = function draw() {
     drawPlane()
 
     // Отрисовываем все элементы из snake[]
-    renderOnPlane(snake, "#f2a154")
+    renderOnPlane(snake, "#f2a154", "#ef7b0e")
 
     // Отрисовываем все элементы из food[]
     renderOnPlane(food, "#54f299")
@@ -83,14 +83,18 @@ function collision(cords, arr) {
     return element
 }
 
-function renderOnPlane(arr, color) {
-    ctx.fillStyle = color
-
-    arr.forEach(elem => {
+function renderOnPlane(arr, color, colorHead=false) {
+    arr.forEach((elem, index) => {
         const x = (elem.x-1)*box
         const y = (elem.y-1)*box
 
-        ctx.fillRect(x, y, box, box)
+        if (colorHead != false && index == 0) {
+            ctx.fillStyle = colorHead
+            ctx.fillRect(x, y, box, box)
+        } else {
+            ctx.fillStyle = color
+            ctx.fillRect(x, y, box, box)
+        }
     })
 }
 
