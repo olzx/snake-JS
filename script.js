@@ -13,10 +13,10 @@ function drawPlane() {
 }
 
 let snake = []
-randomSpawn(snake)
+snake[0] = randomCords()
 
 let food = []
-randomSpawn(food, 4)
+spawnFood(8)
 
 const draw = function draw() {
     drawPlane()
@@ -52,10 +52,10 @@ const draw = function draw() {
     const checkEat = collision(newHead, food)
     if (checkEat) {
         food.splice(food.indexOf(checkEat), 1)
-        snake.push({x: beforeDel.x, y: beforeDel.y})
+        snake.push({x: 0, y: 0})
 
         // спавним на random координаты в массив food[]
-        randomSpawn(food)
+        spawnFood(1)
     }
 
     // Вставлям "первый элемент" на 0 место (первое) в массив snake[]
@@ -63,23 +63,37 @@ const draw = function draw() {
 }
 setInterval(draw, 100)
 
-function randomSpawn(arr, num = 1) {
-    for (let i=0; i < num; i++) {
-        const cords = {
-            x: Math.floor(Math.random() * canvas.width/box + 1),
-            y: Math.floor(Math.random() * canvas.height/box  + 1)
+function spawnFood(num) {
+    for (let i = 0; i < num; i++) {
+        let cords = randomCords()
+
+        // пока cords такое же как и у food или cords == snake
+        while (collision(cords, food) || collision(cords, snake)) {
+            cords = randomCords()
         }
-        arr.push(cords)
+
+        food.push(cords)
+    }
+}
+
+function randomCords() {
+    return cords = {
+        x: Math.floor(Math.random() * canvas.width/box + 1),
+        y: Math.floor(Math.random() * canvas.height/box  + 1)
     }
 }
 
 function collision(cords, arr) {
-    const element = arr.find((elem, index) => {
+    const element = arr.find(elem => {
         if (cords.x == elem.x && cords.y == elem.y) {
             return elem
         }
-        return false
     })
+
+    if (typeof element === 'undefined') {
+        return false
+    }
+
     return element
 }
 
