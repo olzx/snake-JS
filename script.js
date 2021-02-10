@@ -2,6 +2,9 @@ const canvas = document.querySelector('#canvas')
 canvas.focus()
 const ctx = canvas.getContext('2d')
 
+let lengthSpan = document.getElementById('length').children[0]
+let timeSpan = document.getElementById('time').children[0]
+
 canvas.height = 656
 canvas.width  = 656
 
@@ -46,6 +49,7 @@ const draw = function draw() {
     const checkTail = collision(newHead, snake)
     if (checkTail) {
         snake.splice(snake.indexOf(checkTail), snake.length)
+        lengthSpan.textContent = snake.length+1
     }
 
     // Проверяем первый элемент на столкновение с едой (if true - прибаляем +1)
@@ -56,12 +60,30 @@ const draw = function draw() {
 
         // спавним на random координаты в массив food[]
         spawnFood(1)
+
+        lengthSpan.textContent = snake.length+1
     }
 
     // Вставлям "первый элемент" на 0 место (первое) в массив snake[]
     snake.unshift(newHead)
 }
 setInterval(draw, 100)
+
+// таймер
+let minutes = 0
+let timeStart = new Date
+setInterval(() => {
+    const timeCurrent = new Date
+    
+    let seconds = Math.floor((timeCurrent - timeStart) / 1000)
+
+    if (seconds == 60) {
+        timeStart = new Date
+        minutes++
+    }
+
+    timeSpan.textContent = `${minutes}:${seconds}`
+}, 1)
 
 function spawnFood(num) {
     for (let i = 0; i < num; i++) {
