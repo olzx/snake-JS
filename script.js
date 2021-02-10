@@ -103,15 +103,19 @@ function switchDir(direction, cords) {
     switch (direction) {
         case "up":
             cord.y--
+            dirResponse = true
             break;
         case "down":
             cord.y++
+            dirResponse = true
             break;
         case "left":
             cord.x--
+            dirResponse = true
             break;
         case "right":
             cord.x++
+            dirResponse = true
             break;
     }
 
@@ -148,20 +152,23 @@ function checkExit(cords) {
 }
 
 let direction = 'down'
+let dirResponse = false
 document.addEventListener('keydown', event => {
-    switch (event.key) {
-        case 'w':
-            direction = direction === "down" ? "down" : "up"
-            break;
-        case 's':
-            direction = direction === "up" ? "up" : "down"
-            break;
-        case 'a':
-            direction = direction === "right" ? "right" : "left"
-            break;
-        case 'd':
-            direction = direction === "left" ? "left" : "right"
-            break;
+    if (dirResponse === true) {
+        switch (event.key) {
+            case 'w':
+                direction = direction === "down" ? "down" : "up", dirResponse = false
+                break;
+            case 's':
+                direction = direction === "up" ? "up" : "down", dirResponse = false
+                break;
+            case 'a':
+                direction = direction === "right" ? "right" : "left", dirResponse = false
+                break;
+            case 'd':
+                direction = direction === "left" ? "left" : "right", dirResponse = false
+                break;
+        }
     }
 })
 
