@@ -1,4 +1,5 @@
 const canvas = document.querySelector('#canvas')
+canvas.focus()
 const ctx = canvas.getContext('2d')
 
 canvas.height = 656
@@ -41,9 +42,16 @@ const draw = function draw() {
     // Проверяем первый элемент на выход за границы
     newHead = checkExit(beforeDel)
 
+    // Проверяем первый элемент на столкновение со своим хвостом (if true - удаляем все элементы после того элемента с которым столкнулись)
+    const checkTail = collision(newHead, snake)
+    if (checkTail) {
+        snake.splice(snake.indexOf(checkTail), snake.length)
+    }
+
     // Проверяем первый элемент на столкновение с едой (if true - прибаляем +1)
     const checkEat = collision(newHead, food)
     if (checkEat) {
+        food.splice(food.indexOf(checkEat), 1)
         snake.push({x: beforeDel.x, y: beforeDel.y})
 
         // спавним на random координаты в массив food[]
@@ -68,7 +76,6 @@ function randomSpawn(arr, num = 1) {
 function collision(cords, arr) {
     const element = arr.find((elem, index) => {
         if (cords.x == elem.x && cords.y == elem.y) {
-            arr.splice(index, 1)
             return elem
         }
         return false
