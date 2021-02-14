@@ -49,6 +49,12 @@ class Snake extends Game {
                 coords: []
             }}
         ]
+
+        this.snake = {
+            colorHead: options.snake.colorHead,
+            colorTail: options.snake.colorTail,
+            coords: [this._getRandomCoords()]
+        }
     }
 
     setFlatColor(color) {
@@ -82,10 +88,25 @@ class Snake extends Game {
         if (!this._start) return // если игры не была начата
 
         this._spawnEats(this.eats)
+        this._snakeControl()
         
         if (this._start == true) {
             setTimeout(this._drawUpdate, this.timeUpdate)
         }
+    }
+
+    _snakeControl() {
+        this.snake.coords.forEach((block, index) => {
+            let color = ''
+
+            if (index == 0) { // если index == 0 значит это голова
+                color = this.snake.colorHead
+            } else {
+                color = this.snake.colorTail
+            }
+
+            this._drawPixelOnPlane(block.x, block.y, color, this.sizeBox)
+        })
     }
 
     _spawnEats(arrEats) {
@@ -101,14 +122,18 @@ class Snake extends Game {
                         coords.push(cord)
                     }
 
-                    const x = (coords[i].x)*this.sizeBox
-                    const y = (coords[i].y)*this.sizeBox
-
-                    this.ctx.fillStyle = color
-                    this.ctx.fillRect(x, y, this.sizeBox, this.sizeBox)
+                    this._drawPixelOnPlane(coords[i].x, coords[i].y, color, this.sizeBox)
                 }
             }
         })
+    }
+
+    _drawPixelOnPlane(cordX, cordY, color, size) {
+        const x = (cordX)*this.sizeBox
+        const y = (cordY)*this.sizeBox
+
+        this.ctx.fillStyle = color
+        this.ctx.fillRect(x, y, size, size)
     }
 
     _getRandomCoords() {
@@ -127,7 +152,6 @@ const snake = new Snake({
     timeUpdate: 1,    // время обновления (ms)
     sizeBox: 16, // ширина = высота клеточек (px)
     flatColor: '#000', // цвет фона canvas
-
     // Настройка всего что ест snake
     eats: {
         foodApple: {
@@ -139,8 +163,11 @@ const snake = new Snake({
             color: 'blue'
         }
     },
-
-
+    // Настройка snake
+    snake: {
+        colorHead: '#f2a154',
+        colorTail: '#ef7b0e'
+    },
 })
 
 snake.startGame()
