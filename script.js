@@ -31,7 +31,8 @@ class Snake extends Game {
     constructor(options) {
         super(options)
 
-        this.setFlatColor(options.flatColor)
+        this.flatColor = options.flatColor
+        this.setFlatColor(this.flatColor)
 
         this.timeUpdate = options.timeUpdate
 
@@ -53,12 +54,12 @@ class Snake extends Game {
         this.snake = {
             colorHead: options.snake.colorHead,
             colorTail: options.snake.colorTail,
-            coords: [this._getRandomCoords()]
+            coords: [this._getRandomCoords()],
+            direction: 'down'
         }
     }
 
     setFlatColor(color) {
-        this.flatColor = color
         this.ctx.fillStyle = this.flatColor
         this.ctx.fillRect(0, 0, this.$el.width, this.$el.height)
     }
@@ -87,6 +88,7 @@ class Snake extends Game {
     _drawUpdate = () => {
         if (!this._start) return // если игры не была начата
 
+        this.setFlatColor(this.flatColor)
         this._spawnEats(this.eats)
         this._snakeControl()
         
@@ -106,6 +108,24 @@ class Snake extends Game {
             }
 
             this._drawPixelOnPlane(block.x, block.y, color, this.sizeBox)
+
+            if (index == 0) {
+                switch (this.snake.direction) {
+                    case 'up':
+                        block.y--
+                        break;
+                    case 'down':
+                        block.y++
+                        break;
+                    case 'left':
+                        block.x--
+                        break;
+                    case 'right':
+                        block.x++
+                        break;
+                }
+                console.log(block)
+            }
         })
     }
 
@@ -149,7 +169,7 @@ const snake = new Snake({
     selector: '#snake', // id canvas из Html
     height: document.body.clientHeight, // высота canvas
     width: document.body.clientWidth,   // ширина canvas
-    timeUpdate: 1,    // время обновления (ms)
+    timeUpdate: 100,    // время обновления (ms)
     sizeBox: 16, // ширина = высота клеточек (px)
     flatColor: '#000', // цвет фона canvas
     // Настройка всего что ест snake
