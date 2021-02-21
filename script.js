@@ -38,6 +38,8 @@ class Snake extends Game {
 
         this._start = false
 
+        this._Buttons()
+
         this.eats = [
             {food: {
                 amount: options.eats.foodApple.amount, 
@@ -125,6 +127,27 @@ class Snake extends Game {
                         break;
                 }
                 console.log(block)
+            }
+        })
+    }
+
+    _Buttons() {
+        document.addEventListener('keydown', e => {
+            switch (e.key) {
+                case 'w':
+                    this.snake.direction = 'up'
+                    break;
+                case 's':
+                    this.snake.direction = 'down'
+                    break;
+                case 'a':
+                    this.snake.direction = 'left'
+                    break;
+                case 'd':
+                    this.snake.direction = 'right'
+                    break;
+                default:
+                    break;
             }
         })
     }
