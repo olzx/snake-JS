@@ -123,6 +123,23 @@ class Snake extends Game {
                         break;
                 }
 
+                // Проверка на выход за края поля
+                const maxWidth = this.$el.width/this.sizeBox
+                const maxHeight = this.$el.height/this.sizeBox
+                if (newCord.x >= maxWidth) {
+                    newCord.x = 0
+                }
+                if (newCord.x < 0) {
+                    newCord.x = maxWidth-1
+                }
+                if (newCord.y < 0) {
+                    newCord.y = maxHeight-1
+                }
+                if (newCord.y >= maxHeight) {
+                    newCord.y = 0
+                }
+
+                // Удаление последнего элемента хвоста и вставка нового в начало
                 if (this.snake.coords.length > 1) {
                     this.snake.coords.pop()
                 }
