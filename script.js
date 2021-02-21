@@ -31,6 +31,13 @@ class Snake extends Game {
     constructor(options) {
         super(options)
 
+        this.$elGamePoints = document.getElementById(options.elGamePoints).children[0]
+        this.$elGameTime = document.getElementById(options.elGameTime).children[0]
+        this.time = {
+            minutes: 0,
+            timeStart: new Date
+        }
+
         this.flatColor = options.flatColor
         this.setFlatColor(this.flatColor)
 
@@ -78,6 +85,7 @@ class Snake extends Game {
         if (this._start == false) {
             this._start = true
             setTimeout(this._drawUpdate, this.timeUpdate)
+            setInterval(this._setTimeCounter, 100)
         } else {
             console.error('[Ошибка]: Игра уже началась')
         }
@@ -131,6 +139,7 @@ class Snake extends Game {
                     if (number != 0) {
                         if ((newCord.x == blockTail.x) && (newCord.y == blockTail.y)) {
                             this.snake.coords.splice(number+1, this.snake.coords.length)
+                            this.$elGamePoints.textContent = this.snake.coords.length
                         }
                     }
                 })
@@ -172,6 +181,7 @@ class Snake extends Game {
                                         this.snake.coords.push({x: newCord.x, y: newCord.y})
                                         // console.log(this.snake.coords.length)
                                         coords.splice(index, 1) // удаляем элемент с которым столкнулись
+                                        this.$elGamePoints.textContent = this.snake.coords.length
                                         break;
 
                                     case 'boost':
@@ -282,11 +292,26 @@ class Snake extends Game {
             y: Math.floor(Math.random() * this.$el.height/this.sizeBox)
         }
     }
+
+    _setTimeCounter = () => {
+        const timeCurrent = new Date
+    
+        let seconds = Math.floor((timeCurrent - this.time.timeStart) / 1000)
+    
+        if (seconds == 60) {
+            this.time.timeStart = new Date
+            this.time.minutes++
+        }
+    
+        this.$elGameTime.textContent = `${this.time.minutes}:${seconds}`
+    }
 }
 
 
 const snake = new Snake({
     selector: '#snake', // id canvas из Html
+    elGamePoints: 'info-points',
+    elGameTime: 'info-time',
     height: document.body.clientHeight, // высота canvas
     width: document.body.clientWidth,   // ширина canvas
     timeUpdate: 100,    // время обновления (ms)

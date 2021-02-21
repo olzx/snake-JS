@@ -3,3 +3,21 @@ body {
     height: 100vh;
     width: 100vw;
 }
+
+p {
+    margin: 0;
+}
+
+.info {
+    position: absolute;
+    font-family: 'Courier New', Courier, monospace;
+    color: #128f6f;
+    font-size: calc(1em + 1vw);
+    font-weight: 800;
+    padding-left: 10px;
+    opacity: .9;
+}
+
+.info p {
+    padding-top: 10px;
+}
