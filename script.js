@@ -21,7 +21,7 @@ class Game {
         if(a > b){//защита от дурака
             if(!(a % b)) //если а делится на b без остатка
                 return a//значит а это и есть ответ
-            return (b * (x + 1) - a) < (a - b * x) ? b * (x + 1) : b * x //иначе выбираем между b * x и b * (x + 1)
+            return (b * x - a) < (a - b * x) ? b * x : b * x //иначе выбираем между b * x и b * (x + 1)
         }
         return 'Некорректный ввод данных'
     }
@@ -38,6 +38,7 @@ class Snake extends Game {
 
         this._start = false
 
+        this.buttonSwitch = false
         this._Buttons()
 
         this.eats = [
@@ -66,6 +67,7 @@ class Snake extends Game {
     setFlatColor(color) {
         this.ctx.fillStyle = this.flatColor
         this.ctx.fillRect(0, 0, this.$el.width, this.$el.height)
+        document.body.style.backgroundColor = this.flatColor
     }
 
     setTimeUpdate(time) {
@@ -122,6 +124,7 @@ class Snake extends Game {
                         newCord.x++
                         break;
                 }
+                this.buttonSwitch = true
 
                 // проверка на столкновение со своим хвостом
                 this.snake.coords.forEach((blockTail, number) => {
@@ -206,16 +209,36 @@ class Snake extends Game {
         document.addEventListener('keydown', e => {
             switch (e.key) {
                 case 'w':
-                    this.snake.direction = 'up'
+                    if (!this.buttonSwitch) break;
+
+                    if (this.snake.direction !== 'down') {
+                        this.snake.direction = 'up'
+                        this.buttonSwitch = false
+                    }
                     break;
                 case 's':
-                    this.snake.direction = 'down'
+                    if (!this.buttonSwitch) break;
+
+                    if (this.snake.direction !== 'up') {
+                        this.snake.direction = 'down'
+                        this.buttonSwitch = false
+                    }
                     break;
                 case 'a':
-                    this.snake.direction = 'left'
+                    if (!this.buttonSwitch) break;
+
+                    if (this.snake.direction !== 'right') {
+                        this.snake.direction = 'left'
+                        this.buttonSwitch = false
+                    }
                     break;
                 case 'd':
-                    this.snake.direction = 'right'
+                    if (!this.buttonSwitch) break;
+
+                    if (this.snake.direction !== 'left') {
+                        this.snake.direction = 'right'
+                        this.buttonSwitch = false
+                    }
                     break;
                 default:
                     break;
