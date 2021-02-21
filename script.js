@@ -44,19 +44,21 @@ class Snake extends Game {
             {food: {
                 amount: options.eats.foodApple.amount, 
                 color: options.eats.foodApple.color, 
-                coords: []
+                coords: [],
+                autoAdd: true
             }},
             {boost: {
                 amount: options.eats.boost.amount, 
                 color: options.eats.boost.color,
-                coords: []
+                coords: [],
+                autoAdd: true
             }}
         ]
 
         this.snake = {
             colorHead: options.snake.colorHead,
             colorTail: options.snake.colorTail,
-            coords: [this._getRandomCoords()],
+            coords: [{x: 3, y: 4}],
             direction: 'down'
         }
     }
@@ -101,32 +103,75 @@ class Snake extends Game {
 
     _snakeControl() {
         this.snake.coords.forEach((block, index) => {
-            let color = ''
-
-            if (index == 0) { // если index == 0 значит это голова
-                color = this.snake.colorHead
-            } else {
-                color = this.snake.colorTail
-            }
-
-            this._drawPixelOnPlane(block.x, block.y, color, this.sizeBox)
+            this._drawPixelOnPlane(block.x, block.y, this.snake.colorTail, this.sizeBox)
 
             if (index == 0) {
+                let newCord = {x: block.x, y: block.y}
+
                 switch (this.snake.direction) {
                     case 'up':
-                        block.y--
+                        newCord.y--
                         break;
                     case 'down':
-                        block.y++
+                        newCord.y++
                         break;
                     case 'left':
-                        block.x--
+                        newCord.x--
                         break;
                     case 'right':
-                        block.x++
+                        newCord.x++
                         break;
                 }
-                console.log(block)
+
+                if (this.snake.coords.length > 1) {
+                    this.snake.coords.pop()
+                }
+                this.snake.coords.unshift(newCord)
+
+                this._drawPixelOnPlane(newCord.x, newCord.y, this.snake.colorHead, this.sizeBox)
+
+                // проверка на столкновение с eats[]
+                this.eats.forEach(eat => {
+                    for (const iterator in eat) {
+                        let coords = eat[iterator].coords
+
+                        coords.forEach((coord, index) => {
+                            // если true - столкнулись
+                            if ((coord.x == newCord.x) && (coord.y == newCord.y)) {
+                                switch (iterator) {
+                                    case 'food':
+                                        this.snake.coords.push({x: newCord.x, y: newCord.y})
+                                        // console.log(this.snake.coords.length)
+                                        coords.splice(index, 1) // удаляем элемент с которым столкнулись
+                                        break;
+
+                                    case 'boost':
+                                        coords.splice(index, 1)
+
+                                        this.timeUpdate = 50
+                                        
+                                        const _BoostAutoAdd = autoAdd => {
+                                            this.eats.forEach(eat => {
+                                                for (let iterator in eat) {
+                                                    if (iterator == 'boost') {
+                                                        eat[iterator].autoAdd = autoAdd
+                                                    }
+                                                }
+                                            })
+                                        }
+
+                                        _BoostAutoAdd(false)
+
+                                        setTimeout(() => {
+                                            this.timeUpdate = 100
+                                            _BoostAutoAdd(true)
+                                        }, 3000)
+                                        break;
+                                }
+                            }
+                        })
+                    }
+                })
             }
         })
     }
@@ -158,14 +203,17 @@ class Snake extends Game {
                 const amount = food[iterator].amount
                 const color = food[iterator].color
                 let coords = food[iterator].coords
+                const autoAdd = food[iterator].autoAdd
 
                 for (let i = 0; i < amount; i++) {
-                    if (coords.length < amount) {
+                    if ((coords.length < amount) && autoAdd) {
                         const cord = this._getRandomCoords()
                         coords.push(cord)
                     }
 
-                    this._drawPixelOnPlane(coords[i].x, coords[i].y, color, this.sizeBox)
+                    if (coords.length > 0) {
+                        this._drawPixelOnPlane(coords[i].x, coords[i].y, color, this.sizeBox)
+                    }
                 }
             }
         })
@@ -208,7 +256,7 @@ const snake = new Snake({
     },
     // Настройка snake
     snake: {
-        colorHead: '#f2a154',
+        colorHead: 'red', //#f2a154
         colorTail: '#ef7b0e'
     },
 })
