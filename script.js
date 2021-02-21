@@ -123,6 +123,15 @@ class Snake extends Game {
                         break;
                 }
 
+                // проверка на столкновение со своим хвостом
+                this.snake.coords.forEach((blockTail, number) => {
+                    if (number != 0) {
+                        if ((newCord.x == blockTail.x) && (newCord.y == blockTail.y)) {
+                            this.snake.coords.splice(number+1, this.snake.coords.length)
+                        }
+                    }
+                })
+
                 // Проверка на выход за края поля
                 const maxWidth = this.$el.width/this.sizeBox
                 const maxHeight = this.$el.height/this.sizeBox
@@ -263,7 +272,7 @@ const snake = new Snake({
     // Настройка всего что ест snake
     eats: {
         foodApple: {
-            amount: 5,
+            amount: 10,
             color: 'green'
         },
         boost: {
