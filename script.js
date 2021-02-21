@@ -1,247 +1,338 @@
-const canvas = document.querySelector('#canvas')
-canvas.focus()
-const ctx = canvas.getContext('2d')
+class Game {
+    constructor(options) {
+        this.$el = document.querySelector(options.selector)
+        this.ctx = this.$el.getContext('2d')
 
-let lengthSpan = document.getElementById('length').children[0]
-let timeSpan = document.getElementById('time').children[0]
+        this.sizeBox = options.sizeBox
 
-canvas.height = 656
-canvas.width  = 656
+        this.$el.width = this.getClosestInteger(options.width, this.sizeBox)
+        this.$el.height = this.getClosestInteger(options.height, this.sizeBox)
+    }
 
-const box = 16
+    show() {
+        this.$el.style.display = 'block'
+    }
 
-let timeUpdate = 100
+    hide() {
+        this.$el.style.display = 'none'
+    }
 
-const foodImg = new Image(); 
-foodImg.src = "img/food.png";
-
-function drawPlane() {
-    ctx.fillStyle = "#000"
-    ctx.fillRect(0, 0, canvas.height, canvas.width)
+    getClosestInteger(a, b, x = Math.trunc(a / b)) { //х - сколько раз b содержится в а
+        if(a > b){//защита от дурака
+            if(!(a % b)) //если а делится на b без остатка
+                return a//значит а это и есть ответ
+            return (b * x - a) < (a - b * x) ? b * x : b * x //иначе выбираем между b * x и b * (x + 1)
+        }
+        return 'Некорректный ввод данных'
+    }
 }
 
-let snake = []
-snake[0] = randomCords()
+class Snake extends Game {
+    constructor(options) {
+        super(options)
 
-let food = []
-spawnFood(8)
-
-let boost = []
-boost[0] = randomCords()
-
-let draw = function drawUpdate() {
-    drawPlane()
-
-    // Отрисовываем все элементы из snake[]
-    renderOnPlane(snake, "#f2a154", "#ef7b0e")
-
-    // Отрисовываем все элементы из food[]
-    renderOnPlaneImage(food, foodImg)
-
-    // Отрисовываем все элементы из boost[]
-    renderOnPlane(boost, "#1687a7")
-
-    // Сохраняем координаты первого элемента из snake[]
-    let beforeDel = {
-        x: snake[0].x,
-        y: snake[0].y
-    }
-
-    // Удаляем последний элемент
-    snake.pop()
-
-    // Перемещаем первый элемент
-    beforeDel = switchDir(direction, beforeDel)
-
-    // Проверяем первый элемент на выход за границы
-    newHead = checkExit(beforeDel)
-
-    // Проверяем первый элемент на столкновение со своим хвостом (if true - удаляем все элементы после того элемента с которым столкнулись)
-    const checkTail = collision(newHead, snake)
-    if (checkTail) {
-        snake.splice(snake.indexOf(checkTail), snake.length)
-        lengthSpan.textContent = snake.length+1
-    }
-
-    // Проверяем первый элемент на столкновение с едой (if true - прибаляем +1)
-    const checkEat = collision(newHead, food)
-    if (checkEat) {
-        food.splice(food.indexOf(checkEat), 1)
-        snake.push({x: 0, y: 0})
-
-        // спавним на random координаты в массив food[]
-        spawnFood(1)
-
-        lengthSpan.textContent = snake.length+1
-    }
-
-    const checkBoost = collision(newHead, boost)
-    if (checkBoost) {
-        boost.splice(boost.indexOf(checkBoost), 1)
-        timeUpdate = 50
-
-        setTimeout(() => {
-            timeUpdate = 100
-            const cords = randomCords()
-            boost.push(cords)
-        }, 3000);
-    }
-
-    // Вставлям "первый элемент" на 0 место (первое) в массив snake[]
-    snake.unshift(newHead)
-    setTimeout(draw, timeUpdate)
-}
-setTimeout(draw, 1);
-
-// таймер
-let minutes = 0
-let timeStart = new Date
-setInterval(() => {
-    const timeCurrent = new Date
-    
-    let seconds = Math.floor((timeCurrent - timeStart) / 1000)
-
-    if (seconds == 60) {
-        timeStart = new Date
-        minutes++
-    }
-
-    timeSpan.textContent = `${minutes}:${seconds}`
-}, 1)
-
-function spawnFood(num) {
-    for (let i = 0; i < num; i++) {
-        let cords = randomCords()
-
-        // пока cords такое же как и у food или cords == snake
-        while (collision(cords, food) || collision(cords, snake)) {
-            cords = randomCords()
+        this.$elGamePoints = document.getElementById(options.elGamePoints).children[0]
+        this.$elGameTime = document.getElementById(options.elGameTime).children[0]
+        this.time = {
+            minutes: 0,
+            timeStart: new Date
         }
 
-        food.push(cords)
-    }
-}
+        this.flatColor = options.flatColor
+        this.setFlatColor(this.flatColor)
 
-function randomCords() {
-    return cords = {
-        x: Math.floor(Math.random() * canvas.width/box + 1),
-        y: Math.floor(Math.random() * canvas.height/box  + 1)
-    }
-}
+        this.timeUpdate = options.timeUpdate
 
-function collision(cords, arr) {
-    const element = arr.find(elem => {
-        if (cords.x == elem.x && cords.y == elem.y) {
-            return elem
+        this._start = false
+
+        this.buttonSwitch = false
+        this._Buttons()
+
+        this.eats = [
+            {food: {
+                amount: options.eats.foodApple.amount, 
+                color: options.eats.foodApple.color, 
+                coords: [],
+                autoAdd: true
+            }},
+            {boost: {
+                amount: options.eats.boost.amount, 
+                color: options.eats.boost.color,
+                coords: [],
+                autoAdd: true
+            }}
+        ]
+
+        this.snake = {
+            colorHead: options.snake.colorHead,
+            colorTail: options.snake.colorTail,
+            coords: [{x: 3, y: 4}],
+            direction: 'down'
         }
-    })
-
-    if (typeof element === 'undefined') {
-        return false
     }
 
-    return element
-}
+    setFlatColor(color) {
+        this.ctx.fillStyle = this.flatColor
+        this.ctx.fillRect(0, 0, this.$el.width, this.$el.height)
+        document.body.style.backgroundColor = this.flatColor
+    }
 
-function renderOnPlane(arr, color, colorHead=false) {
-    arr.forEach((elem, index) => {
-        const x = (elem.x-1)*box
-        const y = (elem.y-1)*box
+    setTimeUpdate(time) {
+        this.timeUpdate = time
+    }
 
-        if (colorHead != false && index == 0) {
-            ctx.fillStyle = colorHead
-            ctx.fillRect(x, y, box, box)
+    startGame() {
+        if (this._start == false) {
+            this._start = true
+            setTimeout(this._drawUpdate, this.timeUpdate)
+            setInterval(this._setTimeCounter, 100)
         } else {
-            ctx.fillStyle = color
-            ctx.fillRect(x, y, box, box)
-        }
-    })
-}
-
-function renderOnPlaneImage(arr, image) {
-    arr.forEach(elem => {
-        const x = (elem.x-1)*box
-        const y = (elem.y-1)*box
-
-        ctx.drawImage(image, x, y, box, box);
-    })
-}
-
-function switchDir(direction, cords) {
-    let cord = {
-        x: cords.x,
-        y: cords.y
-    }
-
-    switch (direction) {
-        case "up":
-            cord.y--
-            dirResponse = true
-            break;
-        case "down":
-            cord.y++
-            dirResponse = true
-            break;
-        case "left":
-            cord.x--
-            dirResponse = true
-            break;
-        case "right":
-            cord.x++
-            dirResponse = true
-            break;
-    }
-
-    return cord
-}
-
-function checkExit(cords) {
-    const head = {
-        x: cords.x,
-        y: cords.y
-    }
-
-    if (cords.x <= 0) {
-        head.x = canvas.width / box
-        return head
-    }
-
-    if ((cords.x * box) > canvas.width) {
-        head.x = 1
-        return head
-    } 
-
-    if (cords.y <= 0) {
-        head.y = canvas.height / box
-        return head
-    }
-
-    if ((cords.y * box) > canvas.height) {
-        head.y = 1
-        return head
-    } 
-
-    return head
-}
-
-let direction = 'down'
-let dirResponse = false
-document.addEventListener('keydown', event => {
-    if (dirResponse === true) {
-        switch (event.key) {
-            case 'w':
-                direction = direction === "down" ? "down" : "up", dirResponse = false
-                break;
-            case 's':
-                direction = direction === "up" ? "up" : "down", dirResponse = false
-                break;
-            case 'a':
-                direction = direction === "right" ? "right" : "left", dirResponse = false
-                break;
-            case 'd':
-                direction = direction === "left" ? "left" : "right", dirResponse = false
-                break;
+            console.error('[Ошибка]: Игра уже началась')
         }
     }
+
+    stopGame() {
+        if (this._start == true) {
+            this._start = false
+        } else {
+            console.error('[Ошибка]: Игра еще не началась')
+        }
+    }
+
+    _drawUpdate = () => {
+        if (!this._start) return // если игры не была начата
+
+        this.setFlatColor(this.flatColor)
+        this._spawnEats(this.eats)
+        this._snakeControl()
+        
+        if (this._start == true) {
+            setTimeout(this._drawUpdate, this.timeUpdate)
+        }
+    }
+
+    _snakeControl() {
+        this.snake.coords.forEach((block, index) => {
+            this._drawPixelOnPlane(block.x, block.y, this.snake.colorTail, this.sizeBox)
+
+            if (index == 0) {
+                let newCord = {x: block.x, y: block.y}
+
+                switch (this.snake.direction) {
+                    case 'up':
+                        newCord.y--
+                        break;
+                    case 'down':
+                        newCord.y++
+                        break;
+                    case 'left':
+                        newCord.x--
+                        break;
+                    case 'right':
+                        newCord.x++
+                        break;
+                }
+                this.buttonSwitch = true
+
+                // проверка на столкновение со своим хвостом
+                this.snake.coords.forEach((blockTail, number) => {
+                    if (number != 0) {
+                        if ((newCord.x == blockTail.x) && (newCord.y == blockTail.y)) {
+                            this.snake.coords.splice(number+1, this.snake.coords.length)
+                            this.$elGamePoints.textContent = this.snake.coords.length
+                        }
+                    }
+                })
+
+                // Проверка на выход за края поля
+                const maxWidth = this.$el.width/this.sizeBox
+                const maxHeight = this.$el.height/this.sizeBox
+                if (newCord.x >= maxWidth) {
+                    newCord.x = 0
+                }
+                if (newCord.x < 0) {
+                    newCord.x = maxWidth-1
+                }
+                if (newCord.y < 0) {
+                    newCord.y = maxHeight-1
+                }
+                if (newCord.y >= maxHeight) {
+                    newCord.y = 0
+                }
+
+                // Удаление последнего элемента хвоста и вставка нового в начало
+                if (this.snake.coords.length > 1) {
+                    this.snake.coords.pop()
+                }
+                this.snake.coords.unshift(newCord)
+
+                this._drawPixelOnPlane(newCord.x, newCord.y, this.snake.colorHead, this.sizeBox)
+
+                // проверка на столкновение с eats[]
+                this.eats.forEach(eat => {
+                    for (const iterator in eat) {
+                        let coords = eat[iterator].coords
+
+                        coords.forEach((coord, index) => {
+                            // если true - столкнулись
+                            if ((coord.x == newCord.x) && (coord.y == newCord.y)) {
+                                switch (iterator) {
+                                    case 'food':
+                                        this.snake.coords.push({x: newCord.x, y: newCord.y})
+                                        // console.log(this.snake.coords.length)
+                                        coords.splice(index, 1) // удаляем элемент с которым столкнулись
+                                        this.$elGamePoints.textContent = this.snake.coords.length
+                                        break;
+
+                                    case 'boost':
+                                        coords.splice(index, 1)
+
+                                        this.timeUpdate = 50
+                                        
+                                        const _BoostAutoAdd = autoAdd => {
+                                            this.eats.forEach(eat => {
+                                                for (let iterator in eat) {
+                                                    if (iterator == 'boost') {
+                                                        eat[iterator].autoAdd = autoAdd
+                                                    }
+                                                }
+                                            })
+                                        }
+
+                                        _BoostAutoAdd(false)
+
+                                        setTimeout(() => {
+                                            this.timeUpdate = 100
+                                            _BoostAutoAdd(true)
+                                        }, 3000)
+                                        break;
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+
+    _Buttons() {
+        document.addEventListener('keydown', e => {
+            switch (e.key) {
+                case 'w':
+                    if (!this.buttonSwitch) break;
+
+                    if (this.snake.direction !== 'down') {
+                        this.snake.direction = 'up'
+                        this.buttonSwitch = false
+                    }
+                    break;
+                case 's':
+                    if (!this.buttonSwitch) break;
+
+                    if (this.snake.direction !== 'up') {
+                        this.snake.direction = 'down'
+                        this.buttonSwitch = false
+                    }
+                    break;
+                case 'a':
+                    if (!this.buttonSwitch) break;
+
+                    if (this.snake.direction !== 'right') {
+                        this.snake.direction = 'left'
+                        this.buttonSwitch = false
+                    }
+                    break;
+                case 'd':
+                    if (!this.buttonSwitch) break;
+
+                    if (this.snake.direction !== 'left') {
+                        this.snake.direction = 'right'
+                        this.buttonSwitch = false
+                    }
+                    break;
+                default:
+                    break;
+            }
+        })
+    }
+
+    _spawnEats(arrEats) {
+        arrEats.forEach(food => {
+            for (const iterator in food) {
+                const amount = food[iterator].amount
+                const color = food[iterator].color
+                let coords = food[iterator].coords
+                const autoAdd = food[iterator].autoAdd
+
+                for (let i = 0; i < amount; i++) {
+                    if ((coords.length < amount) && autoAdd) {
+                        const cord = this._getRandomCoords()
+                        coords.push(cord)
+                    }
+
+                    if (coords.length > 0) {
+                        this._drawPixelOnPlane(coords[i].x, coords[i].y, color, this.sizeBox)
+                    }
+                }
+            }
+        })
+    }
+
+    _drawPixelOnPlane(cordX, cordY, color, size) {
+        const x = (cordX)*this.sizeBox
+        const y = (cordY)*this.sizeBox
+
+        this.ctx.fillStyle = color
+        this.ctx.fillRect(x, y, size, size)
+    }
+
+    _getRandomCoords() {
+        return {
+            x: Math.floor(Math.random() * this.$el.width/this.sizeBox),
+            y: Math.floor(Math.random() * this.$el.height/this.sizeBox)
+        }
+    }
+
+    _setTimeCounter = () => {
+        const timeCurrent = new Date
+    
+        let seconds = Math.floor((timeCurrent - this.time.timeStart) / 1000)
+    
+        if (seconds == 60) {
+            this.time.timeStart = new Date
+            this.time.minutes++
+        }
+    
+        this.$elGameTime.textContent = `${this.time.minutes}:${seconds}`
+    }
+}
+
+
+const snake = new Snake({
+    selector: '#snake', // id canvas из Html
+    elGamePoints: 'info-points',
+    elGameTime: 'info-time',
+    height: document.body.clientHeight, // высота canvas
+    width: document.body.clientWidth,   // ширина canvas
+    timeUpdate: 100,    // время обновления (ms)
+    sizeBox: 16, // ширина = высота клеточек (px)
+    flatColor: '#000', // цвет фона canvas
+    // Настройка всего что ест snake
+    eats: {
+        foodApple: {
+            amount: 10,
+            color: 'green'
+        },
+        boost: {
+            amount: 1,
+            color: 'blue'
+        }
+    },
+    // Настройка snake
+    snake: {
+        colorHead: 'red', //#f2a154
+        colorTail: '#ef7b0e'
+    },
 })
 
+snake.startGame()
