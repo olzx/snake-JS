@@ -24,13 +24,14 @@ p {
 
 .buttons {
     position: absolute;
+    
+    width: 192px;
+    bottom: 10px;
+    right: 10px;
+
     color: rgb(255, 255, 255);
     display: flex;
     flex-wrap: wrap;
-    justify-content: left;
-    bottom: 10px;
-    left: 10px;
-
 }
 
 .button {
