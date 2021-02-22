@@ -4,4 +4,4 @@
 Простая игра змейка в браузере написанная на JS
 
 ### Можно задавать настройки перед стартом игры:
-<img src="./assets/settings.png" width="100%">
+<img src="./assets/settings.png">
