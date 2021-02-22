@@ -38,6 +38,11 @@ class Snake extends Game {
             timeStart: new Date
         }
 
+        this.buttons = {
+            keys: [..."WASD"],
+            $elButtons: document.getElementById(options.elButtons)
+        }
+
         this.flatColor = options.flatColor
         this.setFlatColor(this.flatColor)
 
@@ -215,43 +220,60 @@ class Snake extends Game {
         })
     }
 
+    _ifKeyPress(key) {
+        switch (key) {
+            case 'w':
+                if (!this.buttonSwitch) break;
+
+                if (this.snake.direction !== 'down') {
+                    this.snake.direction = 'up'
+                    this.buttonSwitch = false
+                }
+                break;
+            case 's':
+                if (!this.buttonSwitch) break;
+
+                if (this.snake.direction !== 'up') {
+                    this.snake.direction = 'down'
+                    this.buttonSwitch = false
+                }
+                break;
+            case 'a':
+                if (!this.buttonSwitch) break;
+
+                if (this.snake.direction !== 'right') {
+                    this.snake.direction = 'left'
+                    this.buttonSwitch = false
+                }
+                break;
+            case 'd':
+                if (!this.buttonSwitch) break;
+
+                if (this.snake.direction !== 'left') {
+                    this.snake.direction = 'right'
+                    this.buttonSwitch = false
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
     _Buttons() {
         document.addEventListener('keydown', e => {
-            switch (e.key) {
-                case 'w':
-                    if (!this.buttonSwitch) break;
+            this._ifKeyPress(e.key)
+        })
 
-                    if (this.snake.direction !== 'down') {
-                        this.snake.direction = 'up'
-                        this.buttonSwitch = false
-                    }
-                    break;
-                case 's':
-                    if (!this.buttonSwitch) break;
+        document.addEventListener('keyup', e => {
+            this._setButonAnimation(e.key)
+        })
 
-                    if (this.snake.direction !== 'up') {
-                        this.snake.direction = 'down'
-                        this.buttonSwitch = false
-                    }
-                    break;
-                case 'a':
-                    if (!this.buttonSwitch) break;
-
-                    if (this.snake.direction !== 'right') {
-                        this.snake.direction = 'left'
-                        this.buttonSwitch = false
-                    }
-                    break;
-                case 'd':
-                    if (!this.buttonSwitch) break;
-
-                    if (this.snake.direction !== 'left') {
-                        this.snake.direction = 'right'
-                        this.buttonSwitch = false
-                    }
-                    break;
-                default:
-                    break;
+        this.buttons.$elButtons.addEventListener('click', e => {
+            const target = e.target
+            if (target.className == 'button') {
+                const id = target.id
+                this._ifKeyPress(id)
+                this._setButonAnimation(id)
             }
         })
     }
@@ -305,6 +327,16 @@ class Snake extends Game {
     
         this.$elGameTime.textContent = `${this.time.minutes}:${seconds}`
     }
+
+    _setButonAnimation(button) {
+        const key = this.buttons.$elButtons.querySelector('#' + button);
+        if (key) {
+            key.classList.add('hit')
+            key.addEventListener('animationend', () => {
+                key.classList.remove('hit')
+            })
+        }
+    }
 }
 
 
@@ -312,6 +344,7 @@ const snake = new Snake({
     selector: '#snake', // id canvas из Html
     elGamePoints: 'info-points',
     elGameTime: 'info-time',
+    elButtons: 'buttons',
     height: document.body.clientHeight, // высота canvas
     width: document.body.clientWidth,   // ширина canvas
     timeUpdate: 100,    // время обновления (ms)
