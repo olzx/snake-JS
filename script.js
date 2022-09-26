@@ -91,7 +91,6 @@ class Snake extends Game {
             this._start = true
             setTimeout(this._drawUpdate, this.timeUpdate)
             setInterval(this._setTimeCounter, 100)
-            this.$el.focus()
         } else {
             console.error('[Ошибка]: Игра уже началась')
         }
